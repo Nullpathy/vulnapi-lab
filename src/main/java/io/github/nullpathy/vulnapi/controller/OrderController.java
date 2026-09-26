@@ -7,6 +7,7 @@ import io.github.nullpathy.vulnapi.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,10 +24,13 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
-            @Valid @RequestBody CreateOrderRequest request) {
+            @Valid @RequestBody CreateOrderRequest request,
+            Authentication authentication) {
+
+        String email = authentication.getName();
 
         Order order = orderService.createOrder(
-                request.userId(),
+                email,
                 request.productId(),
                 request.quantity()
         );
@@ -37,8 +41,12 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderResponse>> findAll() {
-        List<OrderResponse> orders = orderService.findAll()
+    public ResponseEntity<List<OrderResponse>> findAll(
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        List<OrderResponse> orders = orderService.findByUserEmail(email)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -47,8 +55,13 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> findById(@PathVariable Long id) {
-        return orderService.findById(id)
+    public ResponseEntity<OrderResponse> findById(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return orderService.findByIdAndUserEmail(id, email)
                 .map(order -> ResponseEntity.ok(toResponse(order)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

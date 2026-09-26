@@ -29,12 +29,12 @@ public class OrderService {
     }
 
     @Transactional
-    public Order createOrder(Long userId, Long productId, Integer quantity) {
+    public Order createOrder(String email, Long productId, Integer quantity) {
         if (quantity == null || quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Product product = productRepository.findById(productId)
@@ -56,8 +56,20 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
+    public Optional<Order> findByIdAndUserEmail(Long id, String email) {
+        return orderRepository.findById(id)
+                .filter(order -> order.getUser().getEmail().equals(email));
+    }
+
     public List<Order> findByUserId(Long userId) {
         return orderRepository.findByUserId(userId);
+    }
+
+    public List<Order> findByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return orderRepository.findByUserId(user.getId());
     }
 
     public List<Order> findAll() {

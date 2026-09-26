@@ -37,7 +37,7 @@ class OrderServiceTests {
         Product product = createTestProduct(10);
 
         Order order = orderService.createOrder(
-                user.getId(),
+                user.getEmail(),
                 product.getId(),
                 3
         );
@@ -61,7 +61,7 @@ class OrderServiceTests {
 
         assertThatThrownBy(() ->
                 orderService.createOrder(
-                        user.getId(),
+                        user.getEmail(),
                         product.getId(),
                         3
                 )
@@ -83,7 +83,7 @@ class OrderServiceTests {
 
         assertThatThrownBy(() ->
                 orderService.createOrder(
-                        user.getId(),
+                        user.getEmail(),
                         product.getId(),
                         0
                 )
