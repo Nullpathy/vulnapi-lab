@@ -89,4 +89,30 @@ class AuthControllerTests {
                 .andExpect(jsonPath("$.message")
                         .value("Invalid credentials"));
     }
+
+    @Test
+    void shouldAllowRepeatedFailedLoginAttemptsWithoutRateLimiting() throws Exception {
+
+        userService.createUser(
+                "Rate Limit Test User",
+                "rate-limit-test@vulnapi.local",
+                "SecurePassword123"
+        );
+
+        for (int attempt = 1; attempt <= 10; attempt++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                {
+                                  "email": "rate-limit-test@vulnapi.local",
+                                  "password": "WrongPassword123"
+                                }
+                                """))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error")
+                            .value("Unauthorized"))
+                    .andExpect(jsonPath("$.message")
+                            .value("Invalid credentials"));
+        }
+    }
 }
