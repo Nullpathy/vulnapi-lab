@@ -7,6 +7,7 @@ import io.github.nullpathy.vulnapi.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,5 +40,23 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return userService.findByEmail(email)
+                .map(user -> ResponseEntity.ok(
+                        new UserResponse(
+                                user.getId(),
+                                user.getName(),
+                                user.getEmail(),
+                                user.getRole()
+                        )
+                ))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
