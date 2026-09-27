@@ -55,7 +55,8 @@ class AdminUserControllerTests {
     }
 
     @Test
-    void shouldAllowAdminToViewAllUsersWithoutPasswords() throws Exception {
+    void shouldExposePasswordHashesInAdminUserResponse() throws Exception {
+
         User alice = userService.createUser(
                 "Alice",
                 "alice-admin-user-test@vulnapi.local",
@@ -75,22 +76,15 @@ class AdminUserControllerTests {
         );
 
         admin.setRole(Role.ADMIN);
-        userRepository.save(admin);
+        admin = userRepository.save(admin);
 
         String adminToken = jwtService.generateToken(admin);
 
         mockMvc.perform(get("/api/admin/users")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(
-                        "$[?(@.email == 'alice-admin-user-test@vulnapi.local')]"
-                ).exists())
-                .andExpect(jsonPath(
-                        "$[?(@.email == 'bob-admin-user-test@vulnapi.local')]"
-                ).exists())
-                .andExpect(jsonPath(
-                        "$[?(@.email == 'admin-user-test@vulnapi.local')]"
-                ).exists())
-                .andExpect(jsonPath("$[*].password").doesNotExist());
+                .andExpect(jsonPath("$[?(@.email == 'alice-admin-user-test@vulnapi.local')].password").exists())
+                .andExpect(jsonPath("$[?(@.email == 'bob-admin-user-test@vulnapi.local')].password").exists())
+                .andExpect(jsonPath("$[?(@.email == 'admin-user-test@vulnapi.local')].password").exists());
     }
 }

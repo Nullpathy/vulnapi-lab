@@ -1,6 +1,6 @@
 package io.github.nullpathy.vulnapi.controller;
 
-import io.github.nullpathy.vulnapi.dto.UserResponse;
+import io.github.nullpathy.vulnapi.dto.AdminUserResponse;
 import io.github.nullpathy.vulnapi.entity.User;
 import io.github.nullpathy.vulnapi.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +21,8 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> findAll() {
-        List<UserResponse> users = userService.findAll()
+    public ResponseEntity<List<AdminUserResponse>> findAll() {
+        List<AdminUserResponse> users = userService.findAll()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -30,12 +30,13 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
-    private UserResponse toResponse(User user) {
-        return new UserResponse(
+    private AdminUserResponse toResponse(User user) {
+        return new AdminUserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user.getPassword()
         );
     }
 }
