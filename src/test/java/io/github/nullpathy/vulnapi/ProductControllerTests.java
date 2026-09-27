@@ -50,7 +50,7 @@ class ProductControllerTests {
     }
 
     @Test
-    void shouldRejectProductCreationForUserRole() throws Exception {
+    void shouldAllowProductCreationForUserRole() throws Exception {
 
         User user = userService.createUser(
                 "Normal User",
@@ -64,14 +64,14 @@ class ProductControllerTests {
                         .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .content("""
-                                {
-                                  "name": "Test Product",
-                                  "description": "Security test product",
-                                  "price": 99.99,
-                                  "stock": 10
-                                }
-                                """))
-                .andExpect(status().isForbidden());
+                            {
+                              "name": "Test Product",
+                              "description": "Security test product",
+                              "price": 99.99,
+                              "stock": 10
+                            }
+                            """))
+                .andExpect(status().isCreated());
     }
 
     @Test
