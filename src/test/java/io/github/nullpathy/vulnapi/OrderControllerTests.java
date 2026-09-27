@@ -1,11 +1,12 @@
 package io.github.nullpathy.vulnapi;
 
+import io.github.nullpathy.vulnapi.entity.Order;
 import io.github.nullpathy.vulnapi.entity.Product;
 import io.github.nullpathy.vulnapi.entity.User;
 import io.github.nullpathy.vulnapi.security.JwtService;
+import io.github.nullpathy.vulnapi.service.OrderService;
 import io.github.nullpathy.vulnapi.service.ProductService;
 import io.github.nullpathy.vulnapi.service.UserService;
-import io.github.nullpathy.vulnapi.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -124,11 +125,11 @@ class OrderControllerTests {
                         .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .content("""
-                            {
-                              "productId": %d,
-                              "quantity": 2
-                            }
-                            """.formatted(product.getId())))
+                                {
+                                  "productId": %d,
+                                  "quantity": 2
+                                }
+                                """.formatted(product.getId())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(user.getId()))
                 .andExpect(jsonPath("$.productId").value(product.getId()))
@@ -180,38 +181,41 @@ class OrderControllerTests {
     }
 
     @Test
-    void shouldRejectAccessToAnotherUsersOrder() throws Exception {
+    void shouldDemonstrateBolaByAccessingAnotherUsersOrder() throws Exception {
 
-        User alice = userService.createUser(
-                "Alice",
-                "alice-bola-test@vulnapi.local",
+        User owner = userService.createUser(
+                "Order Owner",
+                "bola-owner@vulnapi.local",
                 "SecurePassword123"
         );
 
-        User bob = userService.createUser(
-                "Bob",
-                "bob-bola-test@vulnapi.local",
+        User attacker = userService.createUser(
+                "BOLA Attacker",
+                "bola-attacker@vulnapi.local",
                 "SecurePassword123"
         );
 
         Product product = productService.createProduct(
                 "BOLA Test Product",
-                "Product used for ownership authorization testing",
-                new BigDecimal("99.90"),
+                "Product used for BOLA testing",
+                new BigDecimal("99.99"),
                 10
         );
 
-        var bobOrder = orderService.createOrder(
-                bob.getEmail(),
+        Order order = orderService.createOrder(
+                owner.getEmail(),
                 product.getId(),
                 1
         );
 
-        String aliceToken = jwtService.generateToken(alice);
+        String attackerToken = jwtService.generateToken(attacker);
 
-        mockMvc.perform(get("/api/orders/" + bobOrder.getId())
-                        .header("Authorization", "Bearer " + aliceToken))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/orders/" + order.getId())
+                        .header("Authorization", "Bearer " + attackerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(order.getId()))
+                .andExpect(jsonPath("$.userId").value(owner.getId()))
+                .andExpect(jsonPath("$.productId").value(product.getId()));
     }
 
     @Test
@@ -230,7 +234,7 @@ class OrderControllerTests {
                 10
         );
 
-        var order = orderService.createOrder(
+        Order order = orderService.createOrder(
                 user.getEmail(),
                 product.getId(),
                 2

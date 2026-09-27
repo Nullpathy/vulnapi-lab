@@ -57,8 +57,7 @@ public class OrderService {
     }
 
     public Optional<Order> findByIdAndUserEmail(Long id, String email) {
-        return orderRepository.findById(id)
-                .filter(order -> order.getUser().getEmail().equals(email));
+        return orderRepository.findById(id);
     }
 
     public List<Order> findByUserId(Long userId) {
